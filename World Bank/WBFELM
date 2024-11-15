@@ -5,7 +5,8 @@ library(dplyr)
 library(tidyr)
 library(MASS)
 library(lfe)
-# Read the .sav file
+
+# Read the .sav file and create data frame - make sure to modify working directory.
 
 setwd("/Users/swire/World Bank")
 df <- read_sav("output_file.sav")
@@ -62,12 +63,15 @@ stargazer(m1,m2,m5,m6, title="OLS Results", align=TRUE)
 m.out0 <- matchit(Occurrence ~ Q97, data = df,
                   method = NULL, distance = "glm")
 
-#covariates
+##    covariates
 # education
 covariate1 <- "Q97"
 df <- subset(df, !(df[[covariate1]] %in% c(-1)))
+# age
 covariate2 <- "Q1"
 df <- subset(df, !(df[[covariate2]] %in% c(-1,998,999)))
+# gender
+covariate3<- "Q101"
 
 m.out <- matchit(
   Occurrence ~ Q97+Q1+Q101,  # Model for propensity score
