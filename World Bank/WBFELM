@@ -6,11 +6,15 @@ library(tidyr)
 library(MASS)
 library(lfe)
 
+
 # Read the .sav file and create data frame - make sure to modify working directory.
 
 setwd("/Users/swire/World Bank")
 df <- read_sav("output_file.sav")
 
+##  outcome variables
+outcome_variable <- "Q83"
+df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
 
 # Rename variables to avoid conflicts
 colnames(df)[colnames(df) == "Days_since_Disaster"] <- "DaysSinceDisaster"
@@ -29,7 +33,7 @@ df$NoAffected[is.na(df$NoAffected) & df$Occurrence == 0] <- 0
 df$TotalAffected[is.na(df$TotalAffected) & df$Occurrence == 0] <- 0
 df$Magnitude[is.na(df$Magnitude) & df$Occurrence == 0] <- 0
 
-df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
+
 
 
 # Create a new variable Log_TotalAffected to avoid log(0) issues
