@@ -1,0 +1,100 @@
+library(haven)
+library(stargazer)
+library(MatchIt)
+library(dplyr)
+library(tidyr)
+library(MASS)
+library(lfe)
+# Read the .sav file
+
+setwd("/Users/swire/World Bank")
+df <- read_sav("output_file.sav")
+
+
+# Rename variables to avoid conflicts
+colnames(df)[colnames(df) == "Days_since_Disaster"] <- "DaysSinceDisaster"
+colnames(df)[colnames(df) == "No__Affected"] <- "NoAffected"
+colnames(df)[colnames(df) == "Total_Affected"] <- "TotalAffected"
+
+# Ensure DATEINTR is in Date format
+df$DATEINTR <- as.Date(df$DATEINTR)
+# Extract the year
+df$Year <- format(df$DATEINTR, "%Y")
+
+
+# Replace missing values conditionally using updated names
+df$DaysSinceDisaster[is.na(df$DaysSinceDisaster) & df$Occurrence == 0] <- 0
+df$NoAffected[is.na(df$NoAffected) & df$Occurrence == 0] <- 0
+df$TotalAffected[is.na(df$TotalAffected) & df$Occurrence == 0] <- 0
+df$Magnitude[is.na(df$Magnitude) & df$Occurrence == 0] <- 0
+
+df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
+
+
+# Create a new variable Log_TotalAffected to avoid log(0) issues
+df$Log_TotalAffected <- log(df$TotalAffected + 1)
+df$Log_Magnitude <- log(df$Magnitude + 1)
+
+df = as.data.frame(df)
+
+###                       NAIVE
+
+# Model 1: Basic logistic regression with Occurrence
+m1 <- lm(Q83 ~ Occurrence, 
+         data = df)
+
+# Model 2
+m2 <- lm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster, data = df)
+
+m5 <- lm(Q83 ~ Occurrence + 
+           Occurrence:DaysSinceDisaster + 
+           Occurrence:Log_TotalAffected, 
+         data = df)
+m6 <- lm(Q83 ~ Occurrence + 
+           Occurrence:DaysSinceDisaster + 
+           Occurrence:Log_TotalAffected + 
+           Occurrence:Log_Magnitude, 
+         data = df)
+
+stargazer(m1,m2,m5,m6, title="OLS Results", align=TRUE)
+
+###                 MATCHING
+m.out0 <- matchit(Occurrence ~ Q97, data = df,
+                  method = NULL, distance = "glm")
+
+#covariates
+# education
+covariate1 <- "Q97"
+df <- subset(df, !(df[[covariate1]] %in% c(-1)))
+covariate2 <- "Q1"
+df <- subset(df, !(df[[covariate2]] %in% c(-1,998,999)))
+
+m.out <- matchit(
+  Occurrence ~ Q97+Q1+Q101,  # Model for propensity score
+  data = df,
+  method = "nearest", # Nearest-neighbor matching
+  distance = "mahalanobis", #Mahalanobis distance matching
+  ratio = 3
+)
+
+# Check matching balance
+summary(m.out)
+df <- match.data(m.out)
+
+df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
+
+
+###               Fixed Effects Linear Model
+
+# Model 1 with fixed effects
+m1 <- felm(Q83 ~ Occurrence | Country + Year| 0 | Country, data = df)
+
+# Model 2 with fixed effects
+m2 <- felm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster | Country + Year| 0 | Country, data = df)
+
+# Model 5 with fixed effects
+m5 <- felm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected | Country + Year| 0 | Country, data = df)
+
+# Model 6 with fixed effects
+m6 <- felm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
+stargazer(m1, m2, m5, m6, title = "Fixed Effects Models using felm", align = TRUE)
