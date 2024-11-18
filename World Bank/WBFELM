@@ -64,8 +64,6 @@ m6 <- lm(Q83 ~ Occurrence +
 stargazer(m1,m2,m5,m6, title="OLS Results", align=TRUE)
 
 ###                 MATCHING
-m.out0 <- matchit(Occurrence ~ Q97, data = df,
-                  method = NULL, distance = "glm")
 
 ##    covariates
 # education
@@ -106,3 +104,4 @@ m5 <- felm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_Tota
 # Model 6 with fixed effects
 m6 <- felm(Q83 ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
 stargazer(m1, m2, m5, m6, title = "Fixed Effects Models using felm", align = TRUE)
+
