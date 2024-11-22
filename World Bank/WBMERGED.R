@@ -12,6 +12,10 @@ library(lfe)
 setwd("/Users/swire/World Bank")
 df <- read_sav("output_file.sav")
 
+#filtering countries
+#df <- df %>%
+  #filter(!(Country %in% c("ethiopia","south africa","mozambique","namibia","malawi","mauritius","zimbabwe","zimbabwe","botswana","zambia","uganda","lesotho","kenya","morocco","swaziland", "tanzania")))
+
 ##  outcome variables
 outcome_variable <- "Q83"
 df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
@@ -187,7 +191,7 @@ m6 <- lm(cohesion_index ~ Occurrence +
            Occurrence:Log_Magnitude, 
          data = df)
 
-stargazer(m1,m2,m5,m6, title="OLS Results", align=TRUE)
+stargazer(m1,m2,m5,m6, title="OLS Results", align=TRUE, out="regression1.txt")
 
 ###                 MATCHING
 
@@ -228,7 +232,8 @@ m5 <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurren
 
 # Model 6 with fixed effects
 m6 <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
-stargazer(m1, m2, m5, m6, title = "Fixed Effects Models using felm", align = TRUE)
+stargazer(m1, m2, m5, m6, title = "Fixed Effects Models using felm", align = TRUE, out="regression2.txt")
 
-#write_sav(df, "matched_indexed.sav")
+write_sav(df, "matched_indexed.sav")
 
+unique(df$Country)
