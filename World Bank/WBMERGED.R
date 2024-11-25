@@ -16,10 +16,6 @@ df <- read_sav("output_file.sav")
 #df <- df %>%
   #filter(!(Country %in% c("ethiopia","south africa","mozambique","namibia","malawi","mauritius","zimbabwe","zimbabwe","botswana","zambia","uganda","lesotho","kenya","morocco","swaziland", "tanzania")))
 
-##  outcome variables
-outcome_variable <- "Q83"
-df <- subset(df, Q83 == 0 | Q83 == 1 | Q83 == 2 | Q83 == 3 | Q83 == 4)
-
 # Rename variables to avoid conflicts
 colnames(df)[colnames(df) == "Days_since_Disaster"] <- "DaysSinceDisaster"
 colnames(df)[colnames(df) == "No__Affected"] <- "NoAffected"
@@ -86,7 +82,6 @@ df <- df[!(df$Q86C %in% c(8, 9, -1, NA, 94)),]
 #Sub-indices - consider, are the variables coded similarly? If so, we could use an additive measure. Then we'll scale them so that they're all between 0 and 1, for ease. Also look at the degree of correlation between variables
 
 #index_general will include 
-#question 83 (Generally speaking, would you say that most people can be trusted or that you must be very careful in dealing with people?). coded with higher values indicating more trust. For 83, it is binary, already a unit interval, 
 
 Q83unit <- df$Q83
 #question 85 ([Citizens of this country] are very diverse. They come from different religions,ethnic groups, political parties, and economic and social backgrounds. Overall, would you say that there is more that unites all [citizens of this country] as one people, or more that divides them?)
@@ -99,6 +94,7 @@ df$index_general <- index_general
 
 
 #index_intra will include:
+#question 83 (Generally speaking, would you say that most people can be trusted or that you must be very careful in dealing with people?). coded with higher values indicating more trust. For 83, it is binary, already a unit interval, 
 #question 86C (For each of the following types of people, please tell me whether you would like having people from this group as neighbours, dislike it, or not care: Homosexuals). This takes values 1-5, with 5 indicting the highest tolerance.
 #question 8A Over the past year, how often, if ever, have you or anyone in your family: Felt unsafe walking in your neighbourhood?
 #question 8B Over the past year, how often, if ever, have you or anyone in your family: Feared crime in your own home?
@@ -234,6 +230,31 @@ m5 <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurren
 m6 <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
 stargazer(m1, m2, m5, m6, title = "Fixed Effects Models using felm", align = TRUE, out="regression2.txt")
 
-write_sav(df, "matched_indexed.sav")
+#write_sav(df, "matched_indexed.sav")
 
 unique(df$Country)
+
+plotdata <- df %>%
+  
+  filter(Occurrence > 0)
+modelplot <- lm(cohesion_index ~ Occurrence:DaysSinceDisaster,data = plotdata)
+
+plot(plotdata$DaysSinceDisaster,plotdata$cohesion_index)
+abline(modelplot, col = "blue", lwd = 2)
+
+###               Fixed Effects Linear Model
+
+# Model 1 with fixed effects
+m10 <- felm(index_intra ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude| Country + Year| 0 | Country, data = df)
+m11 <- felm(PCA_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude| Country + Year| 0 | Country, data = df)
+
+# Model 2 with fixed effects
+m20 <- felm(index_authority ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude| Country + Year| 0 | Country, data = df)
+
+# Model 5 with fixed effects
+m30 <- felm(index_economic ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude| Country + Year| 0 | Country, data = df)
+
+# Model 6 with fixed effects
+m40 <- felm(index_ethnoreligious ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_TotalAffected + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
+stargazer(m10, m20, m30, m40, title = "Fixed Effects Models using felm", align = TRUE, out="regression2.txt")
+
