@@ -215,16 +215,10 @@ m2basic <- lm(cohesion_index ~ Occurrence +
 
 m3basic <- lm(cohesion_index ~ Occurrence + 
            Occurrence:DaysSinceDisaster + 
-           Occurrence:Log_TotalAffected, 
-         data = df_naive)
-
-m4basic <- lm(cohesion_index ~ Occurrence + 
-           Occurrence:DaysSinceDisaster + 
-           Occurrence:Log_TotalAffected + 
            Occurrence:Log_Magnitude, 
          data = df_naive)
 
-stargazer(m1basic,m2basic,m3basic,m4basic, title="OLS Results", align=TRUE, out="regression1.txt")
+stargazer(m1basic,m2basic,m3basic, title="OLS Results", align=TRUE, out="regression1.txt")
 
 
 
@@ -265,8 +259,8 @@ m1felm <- felm(cohesion_index ~ Occurrence | Country + Year| 0 | Country, data =
 m2felm <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster | Country + Year| 0 | Country, data = df)
 
 # Model 6 with fixed effects, DSD, LogTA, and LogMag
-m4felm <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
-stargazer(m1felm, m2felm, m3felm, m4felm, title = "Linear model with fixed affects for Country and Year", align = TRUE, out="regression2.txt")
+m3felm <- felm(cohesion_index ~ Occurrence + Occurrence:DaysSinceDisaster + Occurrence:Log_Magnitude | Country + Year| 0 | Country, data = df)
+stargazer(m1felm, m2felm, m3felm, title = "Linear model with fixed affects for Country and Year", align = TRUE, out="regression2.txt")
 
 
 ### Export
