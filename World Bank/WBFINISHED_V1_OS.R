@@ -193,12 +193,10 @@ index_authority <- as.matrix(X_authority) %*% w_authority
 df$index_authority <- index_authority
 
 # --- Overall Cohesion Index ---
-X_cohesion <- data.frame(index_intra, index_ethreg, index_economic, index_authority)
-w_cohesion <- compute_inverse_cov_weights(X_cohesion)
-print("Weights for cohesion_index:")
-print(w_cohesion)
-cohesion_index <- as.matrix(X_cohesion) %*% w_cohesion
+# --- Overall Cohesion Index ---
+cohesion_index <- (index_intra + index_ethreg + index_economic + index_authority) /4
 df$cohesion_index <- cohesion_index
+
 
 df_naive <- df
 
